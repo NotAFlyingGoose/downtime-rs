@@ -4,6 +4,12 @@ A simple version of macOS's [Downtime](https://support.apple.com/guide/mac-help/
 
 This crate works by editing the `etc/hosts` file and closing your browser until the configured time. During that time any websites that you configure will be blocked.
 
+To install:
+
+```shell
+cargo install downtime-rs
+```
+
 In the future I might make this work on other OS's, but since I only use Mac and Windows, and my Mac already has this feature built in ... probably not
 
 See [`settings.toml`](./settings.toml)
