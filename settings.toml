@@ -1,0 +1,24 @@
+# This is an example of how to configure Downtime for Windows
+# Note that once the program is started, the config cannot be edited
+
+blocked-sites = [
+    "youtube.com",
+    "www.youtube.com",
+]
+
+# replace this with chrome.exe, etc.
+#
+# warning!
+# this process will be killed when downtime is enabled.
+# this is done so that the browser can be affected
+# by the changes made to the `etc/hosts` file
+browser-exe = "Arc.exe"
+
+# this is in 24-hour time in your local timezone
+[enable-downtime]
+hour = 24
+minute = 0
+
+[disable-downtime]
+hour = 8
+minute = 0

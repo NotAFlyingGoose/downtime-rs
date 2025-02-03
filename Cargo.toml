@@ -1,0 +1,21 @@
+[package]
+name = "downtime-rs"
+version = "0.1.0"
+edition = "2021"
+authors = ["NotAFlyingGoose"]
+license = "MIT"
+description = "Downtime for Windows allows you to set a schedule for time away from the screen. During downtime, blocked websites and will be completely inaccessible"
+repository = "https://github.com/NotAFlyingGoose/downtime-rs"
+readme = "README.md"
+exclude = [
+    "settings.toml",
+    "README.md",
+]
+
+[dependencies]
+elevated-command = "1.1.2"
+chrono = "0.4.39"
+winapi = { version = "0.3.9", features = ["winuser"] }
+anyhow = "1.0.95"
+serde = { version = "1.0.217", features = ["derive"] }
+toml = "0.8.19"
