@@ -144,7 +144,9 @@ fn until_next_sleep(until_enable: bool, config: &Config) -> Result<Duration> {
         })
         .with_context(|| format!("{config_name}.hour is invalid"))?
         .with_minute(hour_and_minute.minute)
-        .with_context(|| format!("{config_name}.minute is invalid"))?;
+        .with_context(|| format!("{config_name}.minute is invalid"))?
+        .with_second(0)
+        .context("0 should not be an invalid second")?;
 
     log_to_file(format!("now: {now}, sleep time: {sleep_time}"))?;
 
@@ -155,7 +157,10 @@ fn until_next_sleep(until_enable: bool, config: &Config) -> Result<Duration> {
         duration = sleep_time.signed_duration_since(now)
     }
 
-    log_to_file(format!("duration until: {}", duration.num_seconds()))?;
+    log_to_file(format!(
+        "duration until: {:.2} hrs",
+        duration.num_seconds() as f64 / 60.0 / 60.0
+    ))?;
 
     duration.to_std().context("duration should be positive")
 }
@@ -198,6 +203,8 @@ thread_local! {
     });
 }
 
+/// Since the elevated process won't have a stdout,
+/// The only way to print debug information is to write it to a file.
 fn log_to_file(s: impl Display) -> Result<()> {
     println!("{}", s);
     LOG_FILE.with(|log_file| {
@@ -267,10 +274,9 @@ fn save_state(enabled: bool) -> Result<()> {
     Ok(())
 }
 
-fn write_to_hosts(domains: &[String]) -> Result<()> {
-    // the path to the hosts file.
-    let hosts_path = r"c:\windows\system32\drivers\etc\hosts";
+const HOSTS_PATH: &str = r"C:\windows\system32\drivers\etc\hosts";
 
+fn write_to_hosts(domains: &[String]) -> Result<()> {
     // create a backup of the hosts file (so it can be restored later)
     let exe_path =
         env::current_exe().expect("Failed to determine the path of the current executable");
@@ -281,14 +287,14 @@ fn write_to_hosts(domains: &[String]) -> Result<()> {
         .join("hosts_backup");
     log_to_file(format!("backing up to {}", backup_path.display()))?;
     let contents =
-        read_to_string(hosts_path).context("failed to read etc/hosts (for backing up)")?;
+        read_to_string(HOSTS_PATH).context("failed to read etc/hosts (for backing up)")?;
     write(&backup_path, &contents).context("failed to backup etc/hosts")?;
 
     // Open the file with write permissions.
     let mut file = OpenOptions::new()
         .write(true)
         .append(true) // Or use .truncate(true) if you want to overwrite
-        .open(hosts_path)
+        .open(HOSTS_PATH)
         .context("failed to open etc/hosts")?;
 
     for domain in domains {
@@ -298,9 +304,6 @@ fn write_to_hosts(domains: &[String]) -> Result<()> {
 }
 
 fn restore_hosts() -> Result<()> {
-    // the path to the hosts file.
-    let hosts_path = r"c:\windows\system32\drivers\etc\hosts";
-
     // get the backup
     let exe_path =
         env::current_exe().expect("Failed to determine the path of the current executable");
@@ -312,7 +315,7 @@ fn restore_hosts() -> Result<()> {
     log_to_file(format!("backing up to {}", backup_path.display()))?;
     let contents = read_to_string(backup_path).context("failed to read the backup file")?;
 
-    write(hosts_path, &contents).context("failed to write the backup to etc/hosts")?;
+    write(HOSTS_PATH, &contents).context("failed to write the backup to etc/hosts")?;
     Ok(())
 }
 
